@@ -3,25 +3,33 @@ const express = require('express')
 const app = express();
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 4000
-
 const { users } = require('./state');//saves to users variable
-let counter = users.length;
+
 app.use(bodyParser.json());//need to post new users?
 
 /* BEGIN - create routes here */
 app.get('/users',(req, res) => {
-  res.json(users);
+  let active = users.filter(user => user.isActive != false)//filters records not previously deleted
+  res.json(active);
 })
 
 //any user
 app.get('/users/:id', (req, res) => {
-  res.json(users.filter(user => user._id == (req.params.id)));
+  let check = users
+  .filter(user => user.isActive != false)//filters records not previously deleted
+  .find(user => user._id == (req.params.id));
+  if(check){
+    res.json(check);
+  }else {
+    res.json(`${req.params.id} IS NOT A VALID ID !!!`)
+  }
 });
 
 //post new user
 app.post('/users', (req, res) => {
+  let counter = users.length +1;
   let newUser = req.body;
-  newUser._id = counter + 1;
+  newUser._id = counter;
   users.push(newUser);
   res.json(users);
   counter++;
